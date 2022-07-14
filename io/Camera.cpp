@@ -1,4 +1,4 @@
-#include "Camera.h"
+#include "camera.h"
 
 Camera::Camera(glm::vec3 position)
  : cameraPos(position),
@@ -59,6 +59,10 @@ void Camera::updateCameraZoom(double dy){
     }else{
         zoom = 45.f;
     }
+}
+
+float Camera::getZoom(){
+    return zoom;
 }
 
 glm::mat4 Camera::getViewMatrix(){

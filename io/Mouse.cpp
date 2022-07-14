@@ -1,4 +1,4 @@
-#include "Mouse.h"
+#include "mouse.h"
 
 double Mouse::x = 0;
 double Mouse::y = 0;
@@ -21,6 +21,8 @@ double Mouse::y = 0;
 void Mouse::cursorPosCallback(GLFWwindow * window, double _x, double _y){
     x = _x;
     y = _y;
+
+    //std::cout<<"x,y="<<x<<","<<y<<std::endl;
 
     if(firstMouse){
         lastX = x;
@@ -64,7 +66,7 @@ double Mouse::getDX(){
 double Mouse::getDY(){
     double _dy = dy;
     dy = 0;
-    return dy;
+    return _dy;
 }
 
 double Mouse::getScrollDX(){

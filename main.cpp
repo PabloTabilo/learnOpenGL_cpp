@@ -12,12 +12,12 @@
 #include <streambuf>
 #include <string>
 
-#include "Shader.h"
+#include "graphics/shader.h"
 
-#include "Keyboard.h"
-#include "Mouse.h"
-#include "Joystick.h"
-#include "Camera.h"
+#include "io/keyboard.h"
+#include "io/mouse.h"
+#include "io/joystick.h"
+#include "io/camera.h"
 
 void framebuffer_size_callback(GLFWwindow * window, int width, int height);
 void processInput(GLFWwindow * window, double dt);
@@ -90,8 +90,8 @@ int main( void )
         Shaders
     */
 
-    Shader shader("assets/vertex_core.glsl", "assets/fragment_core.glsl");
-    Shader shader2("assets/vertex_core.glsl", "assets/fragment_core2.glsl");
+    Shader shader("assets/object.vs", "assets/object.fs");
+    Shader shader2("assets/object.vs", "assets/object.fs");
 
     // Continue figures:
     // Vertex Array
