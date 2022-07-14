@@ -1,0 +1,61 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "cppbuild",
+			"label": "C/C++: clang++ build active file",
+			"command": "/usr/bin/g++",
+			"args": [
+				"-std=c++17",
+				"-fdiagnostics-color=always",
+				"-g",
+				"-I",
+				"/usr/local/include",
+				"-I",
+				"${workspaceFolder}/dependencies/include",
+				"-I",
+				"${workspaceFolder}",
+				"-I",
+				"${workspaceFolder}/common",
+				"-I",
+				"${workspaceFolder}/io",
+				"-L",
+				"/usr/local/lib",
+				"-L",
+				"${workspaceFolder}/dependencies/library",
+				"${workspaceFolder}/*.cpp",
+				"${workspaceFolder}/glad.c",
+				"${workspaceFolder}/dependencies/library/libglfw.3.3.dylib",
+				"-o",
+				"${workspaceFolder}/app",
+				"-lglew",
+				"-lglfw.3",
+				"-lglfw.3.3",
+				"-framework",
+				"OpenGL",
+				"-framework",
+				"GLUT",
+				"-framework",
+				"Cocoa",
+				"-framework",
+				"IOKit",
+				"-framework",
+				"CoreVideo",
+				"-framework",
+				"CoreFoundation",
+				"-Wdeprecated",
+			],
+			"options": {
+				"cwd": "${fileDirname}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"detail": "compiler: /usr/bin/clang++"
+		}
+	]
+}
