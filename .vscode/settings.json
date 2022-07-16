@@ -97,5 +97,6 @@
         "slist": "cpp",
         "stop_token": "cpp",
         "cfenv": "cpp"
-    }
+    },
+    "cmake.configureOnOpen": false
 }

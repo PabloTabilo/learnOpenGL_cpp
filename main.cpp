@@ -13,14 +13,15 @@
 #include <string>
 
 #include "graphics/shader.h"
+#include "graphics/texture.h"
 
 #include "io/keyboard.h"
 #include "io/mouse.h"
 #include "io/joystick.h"
 #include "io/camera.h"
+#include "io/screen.h"
 
-void framebuffer_size_callback(GLFWwindow * window, int width, int height);
-void processInput(GLFWwindow * window, double dt);
+void processInput(double dt);
 
 float mixVal = 0.5;
 
@@ -32,7 +33,7 @@ Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-unsigned int SCR_WIDTH = 800, SCR_HEIGHT = 600;
+Screen screen;
 float x, y, z;
 
 int main( void )
@@ -58,33 +59,18 @@ int main( void )
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
 #endif
 
-	// Open a window and create its OpenGL context
-	GLFWwindow * window = glfwCreateWindow( SCR_WIDTH, SCR_HEIGHT, "Me odio", NULL, NULL);
-	if( window == NULL ){
-		fprintf( stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n" );
-		getchar();
-		glfwTerminate();
-		return -1;
-	}
-	glfwMakeContextCurrent(window);
+    if(!screen.init()){
+        std::cout<<"Could not create window."<<std::endl;
+        glfwTerminate();
+        return -1;
+    }
 
     if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
         std::cout<<"Fail to initialize GLAD"<<std::endl;
         return -1;
     }
 
-    glViewport(0,0,SCR_WIDTH,SCR_HEIGHT);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-    glfwSetKeyCallback(window, Keyboard::keyCallback);
-
-    glfwSetCursorPosCallback(window, Mouse::cursorPosCallback);
-    glfwSetMouseButtonCallback(window, Mouse::mouseButtonCallback);
-    glfwSetScrollCallback(window, Mouse::mouseWheelCallback);
-
-    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-    glEnable(GL_DEPTH_TEST);
+    screen.setParameters();
 
     /*
         Shaders
@@ -225,58 +211,14 @@ int main( void )
     glEnableVertexAttribArray(1); // Cube
 
     // Textures
-    unsigned int texture1, texture2;
-
-    glGenTextures(1,&texture1);
-    glBindTexture(GL_TEXTURE_2D, texture1);
-
-    std::cout<<"before assign texture1"<<std::endl;
-
-    // image wrap
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    // border color
-    float borderColor [] = {1.0f, 1.0f, 1.0f, 1.0f};
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-
-    // image filtering
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // scale up -> blend colors
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-    // load image
-    int width, height, nChannels;
-    stbi_set_flip_vertically_on_load(true); // gpu charge image on reverse
-    unsigned char * data = stbi_load("assets/image1.png", &width, &height, &nChannels, 0);
-    if(data){
-        // config for .jpg -> not alpha channel
-        glTexImage2D(GL_TEXTURE_2D,0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }else{
-        std::cout<<"Failed to load texture"<<std::endl;
-    }
-
-    stbi_image_free(data);
-
-    glGenTextures(1, &texture2);
-    glBindTexture(GL_TEXTURE_2D, texture2);
-
-    std::cout<<"before assign texture2"<<std::endl;
-
-    data = stbi_load("assets/boric2.jpg", &width, &height, &nChannels, 0);
-    if(data){
-        // config for .png -> have alpha channel -> i have a bug assign .png with this: GL_RGB
-        glTexImage2D(GL_TEXTURE_2D,0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }else{
-        std::cout<<"Failed to load texture"<<std::endl;
-    }
-
-    stbi_image_free(data);
+    Texture texture1("assets/image1.png","texture1");
+    texture1.load();
+    Texture texture2("assets/boric2.jpg","texture2");
+    texture2.load();
 
     shader.activate();
-    shader.setInt("texture1",0);
-    shader.setInt("texture2",1);
+    shader.setInt("texture1",texture1.id);
+    shader.setInt("texture2",texture2.id);
 
     std::cout<<"i can fucking load everything except the while"<<std::endl;
 
@@ -301,9 +243,9 @@ int main( void )
     shader.activate();
     shader.setMat4("transform", trans);
 */
-    x = 0.0f;
-    y = 0.0f;
-    z = 3.0f;
+    //x = 0.0f;
+    //y = 0.0f;
+    //z = 3.0f;
 
     mainJ.update();
     if(mainJ.isPresent()){
@@ -317,18 +259,15 @@ int main( void )
         deltaTime = currentTime - lastFrame;
         lastFrame = currentTime;
 
-        processInput(window, deltaTime);
+        processInput(deltaTime);
 
         // render
-        glClearColor(0.2f,0.3f,0.3f,1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        screen.update();
 
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture1);
-
-        //glActiveTexture(GL_TEXTURE1);
-        //glBindTexture(GL_TEXTURE_2D, texture2);
-
+        texture1.bind();
+        glActiveTexture(GL_TEXTURE1);
+        texture2.bind();
         //trans = glm::rotate(trans, glm::radians((float)glfwGetTime()/100.0f),glm::vec3(0.0f,0.0f,1.0f));
         //shader.activate();
         //shader.setMat4("transform", trans);
@@ -344,7 +283,7 @@ int main( void )
         //view = glm::translate(view, glm::vec3(-x, -y, -z));
         view = camera.getViewMatrix();
         //projection = glm::perspective(glm::radians(45.f),(float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f,100.0f);
-        projection = glm::perspective(glm::radians(camera.zoom),(float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f,100.0f);
+        projection = glm::perspective(glm::radians(camera.getZoom()),(float)screen.getWidth() / (float)screen.getHeight(), 0.1f,100.0f);
 
         shader.activate();
 
@@ -370,11 +309,10 @@ int main( void )
 
         glBindVertexArray(0);
         // Swap buffers
-		glfwSwapBuffers(window);
-		glfwPollEvents();
+		screen.newFrame();
 
 	} // Check if the ESC key was pressed or the window was closed
-	while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS && glfwWindowShouldClose(window) == 0 );
+	while(!screen.shouldClose());
 
     glDeleteVertexArrays(1,&VAO);
     glDeleteBuffers(1,&VBO);
@@ -386,15 +324,8 @@ int main( void )
 	return 0;
 }
 
-void framebuffer_size_callback(GLFWwindow * window, int width, int height){
-    glViewport(0,0,width,height);
-    SCR_WIDTH = width;
-    SCR_HEIGHT = height;
-}
-
-void processInput(GLFWwindow * window, double dt){
-    //if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    //    glfwSetWindowShouldClose(window, true);
+void processInput(double dt){
+    if(Keyboard::key(GLFW_KEY_ESCAPE)) screen.setShouldClose(true);
 
     // change mix value
     if(Keyboard::key(GLFW_KEY_UP)){
